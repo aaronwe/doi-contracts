@@ -49,15 +49,15 @@ As of 2026-06-22: **72 unique URG awards** during Trump II.
 
 For each unique award not already in `justifications_manifest.csv`:
 
-1. Call `GET https://api.usaspending.gov/api/v2/awards/{contract_award_unique_key}/` to retrieve full award detail. The response includes `latest_transaction_contract_data` with competition/justification fields, and a `solicitation_identifier` (SAM.gov notice number) that can be used to look up posted J&A documents.
-2. Try to fetch a J&A document via FPDS Atom feed: `https://www.fpds.gov/ezsearch/search.do?s=FPDS.GOV&indexName=awardfull&templateName=1.5.3&q=PIID%3A%22{piid}%22&rss=1`. Parse any `<link>` elements pointing to attached PDFs.
-3. If document URLs found, download files to `docs/justifications/{award_id_piid}/`
-4. Construct two always-available fallback links:
+1. Call `GET https://api.usaspending.gov/api/v2/awards/{contract_award_unique_key}/` to retrieve full award detail. The response includes `latest_transaction_contract_data` with competition/justification fields and a `solicitation_identifier` (SAM.gov notice number).
+2. Construct three always-available links:
    - USASpending permalink: `https://www.usaspending.gov/award/{contract_award_unique_key}/`
-   - FPDS search URL: `https://www.fpds.gov/ezsearch/search.do?s=FPDS.GOV&indexName=awardfull&templateName=1.5.3&q=PIID%3A%22{award_id_piid}%22`
-5. Append one row to `justifications_manifest.csv`
+   - SAM.gov PIID search: `https://sam.gov/search/?keywords={award_id_piid}&index=co`
+   - SAM.gov solicitation search (when `solicitation_identifier` present): `https://sam.gov/search/?keywords={solicitation_identifier}&index=opp`
+3. Attempt to download any J&A PDFs found via a SAM.gov free-text search of the award page (best-effort; most contracts will result in "Link only" since SAM.gov's document API requires a key and the FPDS Atom feed now redirects to SAM.gov HTML).
+4. Append one row to `justifications_manifest.csv`
 
-Note: direct J&A PDF links are not available via the USASpending API. Most contracts will result in "Link only" status; downloaded docs are a bonus when the FPDS feed returns attachments.
+Note: confirmed via live API testing that (a) USASpending award detail does not return document URLs, and (b) the FPDS Atom feed (`fpds.gov/ezsearch/...?rss=1`) now returns SAM.gov HTML rather than XML. The `doc_local_path` column will be empty for most rows; the three link columns give journalists direct paths to find J&As manually.
 
 ### Rate limiting
 
