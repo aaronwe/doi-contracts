@@ -60,8 +60,8 @@ KEEP_COLUMNS = [
 ]
 
 # Urgency investigation tool
-TRUMP2_START = date(2025, 1, 20)
-URG_CODE = "URG"
+TRUMP2_START = ADMINISTRATIONS[0]["inauguration"]
+URG_CODE = "URG"  # other_than_full_and_open_competition_code value for FAR 6.302-2 urgency
 MANIFEST_CSV = "justifications_manifest.csv"
 JUSTIFICATIONS_DIR = "docs/justifications"
 INVESTIGATION_MD = "urgency_investigation.md"

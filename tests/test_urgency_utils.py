@@ -1,22 +1,10 @@
-import importlib
-
-
 def test_config_has_required_constants():
     import config
     from datetime import date
 
-    assert hasattr(config, "TRUMP2_START")
-    assert isinstance(config.TRUMP2_START, date)
-    assert config.TRUMP2_START.year == 2025
-
-    assert hasattr(config, "URG_CODE")
+    assert config.TRUMP2_START == date(2025, 1, 20)
     assert config.URG_CODE == "URG"
-
-    assert hasattr(config, "MANIFEST_CSV")
-    assert config.MANIFEST_CSV.endswith(".csv")
-
-    assert hasattr(config, "JUSTIFICATIONS_DIR")
-    assert "justifications" in config.JUSTIFICATIONS_DIR
-
-    assert hasattr(config, "INVESTIGATION_MD")
-    assert config.INVESTIGATION_MD.endswith(".md")
+    assert config.MANIFEST_CSV == "justifications_manifest.csv"
+    assert config.JUSTIFICATIONS_DIR == "docs/justifications"
+    assert config.INVESTIGATION_MD == "urgency_investigation.md"
+    assert config.TRUMP2_START == config.ADMINISTRATIONS[0]["inauguration"]
