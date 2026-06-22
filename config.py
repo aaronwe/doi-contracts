@@ -58,3 +58,10 @@ KEEP_COLUMNS = [
     "primary_place_of_performance_state_code",
     "primary_place_of_performance_state_name",
 ]
+
+# Urgency investigation tool
+TRUMP2_START = date(2025, 1, 20)
+URG_CODE = "URG"
+MANIFEST_CSV = "justifications_manifest.csv"
+JUSTIFICATIONS_DIR = "docs/justifications"
+INVESTIGATION_MD = "urgency_investigation.md"
