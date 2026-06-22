@@ -1,0 +1,11 @@
+# Virtual environment
+.venv/
+
+# Downloaded source ZIPs (large, reproducible — run fetch_contracts.py to regenerate)
+downloads/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

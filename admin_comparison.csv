@@ -1,0 +1,5 @@
+administration,window_start,window_end,days_in_window,unique_contract_count,total_obligated_millions,median_obligation,top_justification_code,top_justification,transaction_count
+Trump II,2025-01-20,2026-06-22,519,714,160.441,11852.01,ONE,ONLY ONE SOURCE-OTHER (FAR 6.302-1 OTHER),1060
+Biden,2021-01-20,2022-06-22,519,981,221.55,8807.11,OTH,AUTHORIZED BY STATUTE (FAR 6.302-5(A)(2)(I)),1682
+Trump I,2017-01-20,2018-06-22,519,1277,140.021,6833.68,OTH,AUTHORIZED BY STATUTE,2008
+Obama I,2009-01-20,2010-06-22,519,3071,264.318,5732.0,OTH,AUTHORIZED BY STATUTE,4195
