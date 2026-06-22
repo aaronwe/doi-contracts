@@ -83,8 +83,8 @@ def generate_report(awards: pd.DataFrame, manifest: pd.DataFrame) -> str:
         "",
         "All contracts used FAR 6.302-2 (URGENCY) justification. Sorted by dollar amount descending.",
         "",
-        "| $ | PIID | Vendor | Description | Location | PSC | J&A | Links |",
-        "|---|---|---|---|---|---|---|---|",
+        "| $ | PIID | Vendor | Description | Location | PSC | Links |",
+        "|---|---|---|---|---|---|---|",
     ]
 
     for _, row in merged.iterrows():
@@ -99,7 +99,6 @@ def generate_report(awards: pd.DataFrame, manifest: pd.DataFrame) -> str:
             truncate(row.get("prime_award_base_transaction_description", "")),
             location,
             truncate(str(row.get("product_or_service_code_description", "")), 50),
-            ja_status(row),
             build_links_cell(row),
         ]
         line = "| " + " | ".join(str(c).replace("|", "\\|") for c in cells) + " |"
