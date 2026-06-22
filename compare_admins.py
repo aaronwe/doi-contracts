@@ -8,6 +8,16 @@ Writes: admin_comparison.csv
 The comparison window for each administration = the first N days of that
 administration, where N = days Trump II has been in office as of today.
 
+Excludes non-discretionary or ambiguous sole-source categories:
+  OTH = Authorized by Statute (AbilityOne / 8(a) — mandated by law)
+  UT  = Utilities (FAR 6.302-1(b)(3) — regulated monopoly, no vendor choice)
+  ONE = Only One Source (FAR 6.302-1 — taking agencies at their word)
+  UNQ = Unique Source (FAR 6.302-1(b)(2) — effectively indistinguishable from ONE)
+
+Compares Trump II, Biden, and Trump I only. Obama I is excluded because
+ARRA stimulus funding in 2009–2010 created an anomalous burst of small
+site-specific contracts that are not comparable to post-stimulus baselines.
+
 Metrics reported per administration:
   - window_start / window_end
   - days_in_window
@@ -32,6 +42,13 @@ from config import ADMINISTRATIONS, OUTPUT_CSV, COMPARISON_CSV
 
 TRUMP_II_INAUGURATION = date(2025, 1, 20)
 
+# Justification codes excluded from analysis:
+#   OTH = Authorized by Statute (AbilityOne/8(a) mandated sole-source)
+#   UT  = Utilities (FAR 6.302-1(b)(3) regulated monopoly)
+#   ONE = Only One Source (FAR 6.302-1) — taking agencies at their word
+#   UNQ = Unique Source (FAR 6.302-1(b)(2)) — effectively indistinguishable from ONE
+EXCLUDE_JUSTIFICATION_CODES = {"OTH", "UT", "ONE", "UNQ"}
+
 
 def load_contracts(csv_path: str) -> pd.DataFrame:
     if not os.path.exists(csv_path):
@@ -43,6 +60,8 @@ def load_contracts(csv_path: str) -> pd.DataFrame:
     df["federal_action_obligation"] = pd.to_numeric(
         df["federal_action_obligation"], errors="coerce"
     )
+    # Drop non-discretionary sole-source categories
+    df = df[~df["other_than_full_and_open_competition_code"].isin(EXCLUDE_JUSTIFICATION_CODES)]
     return df
 
 
@@ -105,7 +124,8 @@ def main():
     print(f"Comparing first {days_elapsed} days for each administration.\n")
 
     df = load_contracts(OUTPUT_CSV)
-    print(f"Loaded {len(df):,} transactions, {df['contract_award_unique_key'].nunique():,} unique awards\n")
+    print(f"Loaded {len(df):,} transactions, {df['contract_award_unique_key'].nunique():,} unique awards")
+    print(f"(OTH, UT, ONE, UNQ excluded — URG/FOC/other discretionary only)\n")
 
     rows = []
     for admin in ADMINISTRATIONS:
@@ -129,7 +149,8 @@ def main():
     pd.set_option("display.float_format", lambda x: f"{x:,.3f}")
 
     print("=" * 80)
-    print(f"NPS No-Bid Contracts: First {days_elapsed} Days by Administration")
+    print(f"NPS Discretionary No-Bid Contracts: First {days_elapsed} Days by Administration")
+    print("(Excludes OTH, UT, ONE, UNQ — see module docstring)")
     print("=" * 80)
 
     display_cols = [

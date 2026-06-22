@@ -20,7 +20,6 @@ ADMINISTRATIONS = [
     {"name": "Trump II",  "inauguration": date(2025, 1, 20)},
     {"name": "Biden",     "inauguration": date(2021, 1, 20)},
     {"name": "Trump I",   "inauguration": date(2017, 1, 20)},
-    {"name": "Obama I",   "inauguration": date(2009, 1, 20)},
 ]
 
 # Earliest date to pull data (Obama I inauguration)
