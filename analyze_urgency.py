@@ -15,7 +15,7 @@ from datetime import date
 
 import pandas as pd
 
-from config import INVESTIGATION_MD, MANIFEST_CSV
+from config import INVESTIGATION_MD, MANIFEST_CSV, TRUMP2_START
 from urgency_utils import load_trump2_urg_awards
 
 
@@ -68,7 +68,7 @@ def generate_report(awards: pd.DataFrame, manifest: pd.DataFrame) -> str:
             merged[col] = merged[col].fillna("")
 
     today = date.today()
-    days_window = (today - date(2025, 1, 20)).days
+    days_window = (today - TRUMP2_START).days
     total_dollars = merged["total_obligation"].sum()
     n_downloaded = (merged["doc_local_path"].fillna("") != "").sum()
 
