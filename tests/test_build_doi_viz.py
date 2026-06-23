@@ -193,6 +193,7 @@ def test_contracts_table_sums_multi_transaction_award():
     windows = _windows_for(["Trump II"])
     result = build_contracts_table(df, ["Trump II"], windows)
     assert len(result) == 1
+    # amount is in $M (1_000_000 + 500_000 - 100_000 = 1_400_000 → 1.4)
     assert abs(result[0]["amount"] - 1.4) < 0.001
 
 
@@ -213,11 +214,15 @@ def test_contracts_table_excludes_pre_window_originating_award():
 def test_contracts_table_uses_agency_short_name():
     df = _make_full_df([
         ("2025-02-01", "AWD-1", "P001", "National Park Service", 1_000_000, "DC", "V", "D"),
+        ("2025-03-01", "AWD-2", "P002", "Bureau of Land Management", 500_000, "NV", "V", "D"),
     ])
     windows = _windows_for(["Trump II"])
     result = build_contracts_table(df, ["Trump II"], windows)
-    assert result[0]["agency_short"] == "NPS"
-    assert result[0]["agency"] == "National Park Service"
+    by_piid = {r["piid"]: r for r in result}
+    assert by_piid["P001"]["agency_short"] == "NPS"
+    assert by_piid["P001"]["agency"] == "National Park Service"
+    assert by_piid["P002"]["agency_short"] == "BLM"
+    assert by_piid["P002"]["agency"] == "Bureau of Land Management"
 
 
 def test_contracts_table_usaspending_url_contains_award_key():
