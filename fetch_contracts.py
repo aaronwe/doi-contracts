@@ -31,6 +31,7 @@ from config import (
     NO_BID_CODES,
     IDV_SOLE_SOURCE_FAIR_OPP_CODES,
     DATA_START_DATE,
+    DOI_OUTPUT_CSV,
     NPS_OUTPUT_CSV,
     DOWNLOADS_DIR,
     KEEP_COLUMNS,
@@ -54,16 +55,15 @@ def _post_with_retry(url: str, payload: dict) -> dict:
             time.sleep(wait)
 
 
-def request_download(start_date: date, end_date: date) -> dict:
-    payload = {
+def _build_download_payload(start_date: date, end_date: date) -> dict:
+    return {
         "filters": {
             "prime_award_types": CONTRACT_AWARD_TYPES,
             "agencies": [
                 {
                     "type": "awarding",
-                    "tier": "subtier",
-                    "name": NPS_SUBTIER_NAME,
-                    "toptier_name": DOI_TOPTIER_NAME,
+                    "tier": "toptier",
+                    "name": DOI_TOPTIER_NAME,
                 }
             ],
             "date_type": "action_date",
@@ -74,6 +74,14 @@ def request_download(start_date: date, end_date: date) -> dict:
         },
         "file_format": "csv",
     }
+
+
+def derive_nps_subset(df: pd.DataFrame) -> pd.DataFrame:
+    return df[df["awarding_sub_agency_name"] == NPS_SUBTIER_NAME].copy()
+
+
+def request_download(start_date: date, end_date: date) -> dict:
+    payload = _build_download_payload(start_date, end_date)
     return _post_with_retry(f"{API_BASE}/bulk_download/awards/", payload)
 
 
@@ -159,7 +167,7 @@ def main():
     all_frames = []
     for chunk_start, chunk_end in chunks:
         year = chunk_start.year
-        zip_path = os.path.join(DOWNLOADS_DIR, f"nps_contracts_{year}.zip")
+        zip_path = os.path.join(DOWNLOADS_DIR, f"doi_contracts_{year}.zip")
 
         if os.path.exists(zip_path) and year != today.year:
             print(f"[{year}] using cached ZIP")
@@ -189,11 +197,15 @@ def main():
     combined = combined.sort_values("action_date")
     combined["action_date"] = combined["action_date"].dt.strftime("%Y-%m-%d")
 
-    combined.to_csv(NPS_OUTPUT_CSV, index=False)
-
-    print(f"\nWrote {len(combined):,} transactions → {NPS_OUTPUT_CSV}")
+    combined.to_csv(DOI_OUTPUT_CSV, index=False)
+    print(f"\nWrote {len(combined):,} transactions → {DOI_OUTPUT_CSV}")
     print(f"Unique awards: {combined['contract_award_unique_key'].nunique():,}")
     print(f"Date range: {combined['action_date'].min()} to {combined['action_date'].max()}")
+
+    nps = derive_nps_subset(combined)
+    nps.to_csv(NPS_OUTPUT_CSV, index=False)
+    print(f"Derived NPS subset: {len(nps):,} transactions → {NPS_OUTPUT_CSV}")
+    print(f"NPS unique awards: {nps['contract_award_unique_key'].nunique():,}")
 
 
 if __name__ == "__main__":
