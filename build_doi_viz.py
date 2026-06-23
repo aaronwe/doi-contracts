@@ -131,13 +131,12 @@ def aggregate_agency_breakdown(
     df: pd.DataFrame, admin_names: list, windows: dict
 ) -> dict:
     df = df.copy()
-    df["_just"] = df.apply(
-        lambda r: classify_justification(
-            str(r.get("other_than_full_and_open_competition_code") or ""),
-            str(r.get("fair_opportunity_limited_sources_code") or ""),
-        ),
-        axis=1,
-    )
+    otf  = df["other_than_full_and_open_competition_code"].fillna("").astype(str).str.strip()
+    fair = df["fair_opportunity_limited_sources_code"].fillna("").astype(str).str.strip()
+    # Replace literal "nan" strings that survive dtype=str reads
+    otf  = otf.where(otf  != "nan", "")
+    fair = fair.where(fair != "nan", "")
+    df["_just"] = [classify_justification(o, f) for o, f in zip(otf, fair)]
     result = {}
     for agency, grp in df.groupby("awarding_sub_agency_name"):
         buckets = {b: [] for b in JUST_ORDER}
@@ -161,13 +160,15 @@ def build_data(df: pd.DataFrame) -> dict:
     doi_obligations = aggregate_doi_obligations(df, VIZ_ADMIN_NAMES, windows)
     all_breakdown   = aggregate_agency_breakdown(df, VIZ_ADMIN_NAMES, windows)
 
-    known_agencies = set(doi_obligations.keys()) - {"Other DOI bureaus"}
-    agency_breakdown = {a: all_breakdown[a] for a in known_agencies if a in all_breakdown}
+    # visible_agencies = agencies that were NOT rolled into "Other DOI bureaus" by the rollup.
+    # doi_obligations is already post-rollup, so its keys are exactly the visible set.
+    visible_agencies = set(doi_obligations.keys()) - {"Other DOI bureaus"}
+    agency_breakdown = {a: all_breakdown[a] for a in visible_agencies if a in all_breakdown}
 
     if "Other DOI bureaus" in doi_obligations:
         other_bd = {b: [0.0] * len(VIZ_ADMIN_NAMES) for b in JUST_ORDER}
         for a, buckets in all_breakdown.items():
-            if a not in known_agencies:
+            if a not in visible_agencies:
                 for b in JUST_ORDER:
                     for i, v in enumerate(buckets[b]):
                         other_bd[b][i] = round(other_bd[b][i] + v, 3)
