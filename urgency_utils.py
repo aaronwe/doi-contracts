@@ -1,10 +1,10 @@
 """Shared utilities for the urgency investigation pipeline."""
 
 import pandas as pd
-from config import OUTPUT_CSV, TRUMP2_START, URG_CODE
+from config import NPS_OUTPUT_CSV, TRUMP2_START, URG_CODE
 
 
-def load_trump2_urg_awards(master_csv: str = OUTPUT_CSV) -> pd.DataFrame:
+def load_trump2_urg_awards(master_csv: str = NPS_OUTPUT_CSV) -> pd.DataFrame:
     """
     Read master contracts CSV, filter to Trump II URG awards, return one row per award.
 
@@ -20,8 +20,19 @@ def load_trump2_urg_awards(master_csv: str = OUTPUT_CSV) -> pd.DataFrame:
     ).fillna(0.0)
 
     trump2_start = pd.Timestamp(TRUMP2_START)
-    mask = (df["action_date"] >= trump2_start) & (
-        df["other_than_full_and_open_competition_code"] == URG_CODE
+
+    # F3: only count contracts whose first-ever transaction originates in Trump II
+    first_dates = df.groupby("contract_award_unique_key")["action_date"].min()
+    originated_in_t2 = first_dates[first_dates >= trump2_start].index
+
+    is_urg = (
+        (df["other_than_full_and_open_competition_code"] == URG_CODE) |
+        (df["fair_opportunity_limited_sources_code"].fillna("") == URG_CODE)
+    )
+    mask = (
+        (df["action_date"] >= trump2_start)
+        & is_urg
+        & df["contract_award_unique_key"].isin(originated_in_t2)
     )
     t2_urg = df[mask].copy()
 
