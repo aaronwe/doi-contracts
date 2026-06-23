@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-Fetch all NPS other-than-full-and-open (no-bid) contracts from USASpending.gov.
+Fetch all DOI other-than-full-and-open (no-bid) contracts from USASpending.gov.
 
-Produces: nps_no_bid_contracts.csv
-  One row per FPDS transaction (contract action/modification).
-  Filtered to extent_competed_code in {B, C}.
-  Covers Obama I inauguration (2009-01-20) through today.
+Produces:
+  doi_no_bid_contracts.csv — all DOI bureaus, one row per FPDS transaction.
+  nps_no_bid_contracts.csv — NPS subset derived from the DOI download.
 
-Re-running is safe: downloaded year ZIPs are cached in downloads/ and reused.
+Filtered to extent_competed_code in {B, C}.
+Covers Obama I inauguration (2009-01-20) through today.
+
+Re-running is safe: downloaded year ZIPs are cached in downloads/ as
+doi_contracts_YYYY.zip and reused. If you have old nps_contracts_YYYY.zip
+files from a prior run, delete them — they are no longer used.
 
 Usage:
     pip install -r requirements.txt
@@ -203,6 +207,8 @@ def main():
     print(f"Date range: {combined['action_date'].min()} to {combined['action_date'].max()}")
 
     nps = derive_nps_subset(combined)
+    if len(nps) == 0:
+        print("WARNING: NPS subset is empty — check awarding_sub_agency_name values in DOI data")
     nps.to_csv(NPS_OUTPUT_CSV, index=False)
     print(f"Derived NPS subset: {len(nps):,} transactions → {NPS_OUTPUT_CSV}")
     print(f"NPS unique awards: {nps['contract_award_unique_key'].nunique():,}")
