@@ -130,17 +130,22 @@
 
   function switchTo(agency) {
     chart.data.datasets = buildDatasets(agency);
+    // Labels (administrations) are the same for all views; no need to update chart.data.labels.
     chart.update();
     renderLegend(agency);
     updateTitle(agency);
   }
 
-  // Populate dropdown
+  // Populate dropdown using DOM API to safely handle special chars in agency names
   const select = document.getElementById('agency-select');
-  select.innerHTML = '<option value="' + ALL_DOI + '">All DOI</option>' +
-    Object.keys(DOI_DATA.doi_obligations)
-      .map(a => '<option value="' + a + '">' + a + '</option>')
-      .join('');
+  [{ label: 'All DOI', value: ALL_DOI }].concat(
+    Object.keys(DOI_DATA.doi_obligations).map(a => ({ label: a, value: a }))
+  ).forEach(function(item) {
+    const opt = document.createElement('option');
+    opt.value = item.value;
+    opt.textContent = item.label;
+    select.appendChild(opt);
+  });
   select.addEventListener('change', function() { switchTo(this.value); });
 
   // Source note
@@ -163,7 +168,7 @@
           callbacks: {
             label: function(ctx) {
               const v = ctx.parsed.y;
-              if (v < 0.005) return null;
+              if (Math.abs(v) < 0.005) return null;
               return ' ' + ctx.dataset.label + ': $' + v.toFixed(1) + 'M';
             },
             footer: function(items) {
