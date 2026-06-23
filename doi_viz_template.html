@@ -112,7 +112,7 @@
   function buildDatasets(agency, admin) {
     const idxs = admin === ALL_ADMIN
       ? DOI_DATA.administrations.map((_, i) => i)
-      : [DOI_DATA.administrations.indexOf(admin)];
+      : [DOI_DATA.administrations.indexOf(admin)].filter(i => i !== -1);
 
     if (agency === ALL_DOI) {
       return Object.entries(DOI_DATA.doi_obligations).map(([name, vals]) => ({
@@ -134,11 +134,11 @@
     let items;
     if (agency === ALL_DOI) {
       items = Object.entries(DOI_DATA.agency_colors).map(([name, color]) =>
-        `<span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>${name}</span>`
+        `<span class="legend-item"><span class="legend-swatch" style="background:${escHtml(color)}"></span>${escHtml(name)}</span>`
       );
     } else {
       const color = DOI_DATA.agency_colors[agency] || '#ccc';
-      items = [`<span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>${agency}</span>`];
+      items = [`<span class="legend-item"><span class="legend-swatch" style="background:${escHtml(color)}"></span>${escHtml(agency)}</span>`];
     }
     el.innerHTML = items.join('');
   }
@@ -166,9 +166,9 @@
   }
 
   function fmtAmount(amt) {
-    return amt >= 1
-      ? '$' + amt.toFixed(1) + 'M'
-      : '$' + Math.round(amt * 1000) + 'K';
+    const abs = Math.abs(amt);
+    const s = abs >= 1 ? '$' + abs.toFixed(1) + 'M' : '$' + Math.round(abs * 1000) + 'K';
+    return amt < 0 ? '−' + s : s;
   }
 
   function renderTable(agency, admin) {
@@ -195,7 +195,8 @@
       cells += `<td style="color:#666">${escHtml(c.state)}</td>`
         + `<td style="color:#666;white-space:nowrap">${escHtml(c.date)}</td>`;
       if (showAdmin) cells += `<td style="color:#666;white-space:nowrap">${escHtml(c.admin)}</td>`;
-      cells += `<td><a href="${escHtml(c.url)}" target="_blank" rel="noopener" title="USASpending">↗</a></td>`;
+      const safeUrl = String(c.url || '').startsWith('https://') ? c.url : '#';
+      cells += `<td><a href="${escHtml(safeUrl)}" target="_blank" rel="noopener" title="USASpending">↗</a></td>`;
       return '<tr>' + cells + '</tr>';
     });
     document.getElementById('contracts-tbody').innerHTML = rows.join('');
