@@ -153,56 +153,53 @@
     <p class="eyebrow">Center for Western Priorities · NPS Contracting Analysis</p>
     <h1>NPS discretionary no-bid contracts by administration</h1>
     <p class="subtitle">
-      First 519 days in office · Urgency, follow-on, and other discretionary sole-source contracts ·
-      Excludes mandated (AbilityOne, 8(a)), utilities, and only-one-source contracts
+      Urgency (FAR 6.302-2) no-bid contracts · First 520 days ·
+      Excludes statutory (AbilityOne/8(a)), utilities, and sole-source IDV task orders
     </p>
 
     <div class="cards">
       <div class="card">
         <div class="card-label">Trump I</div>
-        <div class="card-value">$5.2M</div>
-        <div class="card-sub">118 contracts</div>
+        <div class="card-value">$1.4M</div>
+        <div class="card-sub">55 new contracts</div>
       </div>
       <div class="card">
         <div class="card-label">Biden</div>
-        <div class="card-value">$3.5M</div>
-        <div class="card-sub">108 contracts</div>
+        <div class="card-value">$2.5M</div>
+        <div class="card-sub">66 new contracts</div>
       </div>
       <div class="card highlight">
         <div class="card-label">Trump II</div>
-        <div class="card-value">$20.4M</div>
-        <div class="card-sub">88 contracts</div>
+        <div class="card-value">$21.2M</div>
+        <div class="card-sub">73 new contracts</div>
       </div>
     </div>
 
     <div class="legend">
-      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A;"></span>Urgency (FAR
-        6.302-2)</span>
-      <span class="legend-item"><span class="legend-swatch" style="background:#EF9F27;"></span>Follow-on contract</span>
-      <span class="legend-item"><span class="legend-swatch" style="background:#888780;"></span>Other</span>
+      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A;"></span>Urgency (FAR 6.302-2)</span>
     </div>
 
     <div class="chart-wrapper">
       <canvas id="chart" role="img"
-        aria-label="Stacked bar chart of NPS discretionary no-bid contracts, first 519 days. Trump I: $5.2M dominated by follow-on contracts. Biden: $3.5M split between urgency and follow-on. Trump II: $20.4M, of which $19.6M is urgency — 96 percent of total.">
-        Trump I: $5.2M total — Follow-on $4.2M, Urgency $0.8M, Other $0.28M.
-        Biden: $3.5M total — Urgency $1.8M, Follow-on $1.2M, Other $0.55M.
-        Trump II: $20.4M total — Urgency $19.6M (96%), Follow-on $0.71M, Other $0.08M.
+        aria-label="Bar chart of NPS urgency no-bid contracts, first 520 days. Trump I: $1.4M (55 contracts). Biden: $2.5M (66 contracts). Trump II: $21.2M (73 contracts).">
+        Trump I: $1.4M — 55 urgency contracts.
+        Biden: $2.5M — 66 urgency contracts.
+        Trump II: $21.2M — 73 urgency contracts.
       </canvas>
     </div>
 
     <div class="callout">
-      Urgency contracts (FAR 6.302-2) make up <strong>96% of Trump II's discretionary no-bid spending</strong> —
-      $19.6M from 73 contracts, averaging $269,000 each. That is 5.8× Biden's entire discretionary
-      no-bid total and 3.9× Trump I's. By contrast, Trump I's spending was dominated by follow-on
-      contracts ($4.2M), which continue previously competed work.
+      NPS urgency contracts (FAR 6.302-2) total <strong>$21.2M under Trump II</strong> —
+      8× Biden's $2.5M and nearly 16× Trump I's $1.4M, within the same first 520-day window.
     </div>
 
     <p class="source">
-      First 519 days per administration (Jan. 20 inauguration through June 22, 2026 equivalent).
-      Excludes AbilityOne/8(a) (OTH), regulated utilities (UT), only-one-source (ONE), and
-      unique-source (UNQ) contracts. Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk
-      download, transaction-level data.
+      First 520 days per administration (Jan. 20 inauguration through equivalent date).
+      Counts contracts by first award date (excludes modifications from prior administrations).
+      Includes urgency task orders under IDV/GSA Schedule vehicles. Excludes AbilityOne/8(a) (OTH),
+      regulated utilities (UT), only-one-source (ONE), and unique-source (UNQ).
+      Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk download,
+      transaction-level data.
       Analysis: <a href="https://github.com/aaronwe/doi-contracts">github.com/aaronwe/doi-contracts</a>.
     </p>
 
@@ -217,18 +214,8 @@
         datasets: [
           {
             label: 'Urgency (FAR 6.302-2)',
-            data: [0.752, 1.756, 19.631],
+            data: [1.353, 2.518, 21.191],
             backgroundColor: '#E24B4A',
-          },
-          {
-            label: 'Follow-on contract',
-            data: [4.191, 1.229, 0.706],
-            backgroundColor: '#EF9F27',
-          },
-          {
-            label: 'Other',
-            data: [0.275, 0.549, 0.075],
-            backgroundColor: '#888780',
           },
         ]
       },
