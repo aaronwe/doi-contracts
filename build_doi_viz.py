@@ -53,7 +53,7 @@ AGENCY_SHORT = {
     "Bureau of Safety and Environmental Enforcement":          "BSEE",
 }
 
-VIZ_ADMIN_NAMES = ["Trump I", "Biden", "Trump II"]
+VIZ_ADMIN_NAMES = ["Obama I", "Obama II", "Trump I", "Biden", "Trump II"]
 
 DOI_VIZ_TEMPLATE = "doi_viz_template.html"
 DOI_VIZ_OUTPUT   = "doi_viz.html"
