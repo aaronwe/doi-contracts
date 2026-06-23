@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOI Discretionary No-Bid Contracts by Administration</title>
+  <title>DOI Urgency No-Bid Contracts by Administration</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,7 +20,8 @@
     h1 { font-size: 22px; font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
     .subtitle { font-size: 14px; color: #555; margin-bottom: 1.5rem; }
     .controls {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1rem; flex-wrap: wrap;
     }
     .controls label {
       font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -37,7 +38,22 @@
     .legend-item { display: flex; align-items: center; gap: 5px; }
     .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
     .chart-wrapper { position: relative; width: 100%; height: 360px; }
-    .source { font-size: 11px; color: #aaa; margin-top: 1rem; line-height: 1.5; }
+    .table-caption {
+      font-size: 12px; font-weight: 600; color: #555; margin: 1.5rem 0 0.5rem;
+    }
+    .table-section { overflow-x: auto; }
+    #contracts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    #contracts-table th {
+      text-align: left; padding: 5px 8px; border-bottom: 2px solid #ddd;
+      font-weight: 600; color: #555; font-size: 11px; white-space: nowrap;
+    }
+    #contracts-table th.num { text-align: right; }
+    #contracts-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+    #contracts-table td.num { text-align: right; white-space: nowrap; font-weight: 600; }
+    #contracts-table td.large { color: #c00; }
+    #contracts-table tr:nth-child(even) { background: #fafafa; }
+    #contracts-table a { color: #2563eb; text-decoration: none; }
+    .source { font-size: 11px; color: #aaa; margin-top: 1.5rem; line-height: 1.5; }
     .source a { color: #aaa; }
     @media (max-width: 500px) { h1 { font-size: 18px; } }
   </style>
@@ -46,27 +62,37 @@
 <body>
   <div class="container">
     <p class="eyebrow">Center for Western Priorities · DOI Contracting Analysis</p>
-    <h1 id="chart-title">DOI discretionary no-bid contracts by administration</h1>
+    <h1 id="chart-title">DOI urgency no-bid contracts by administration</h1>
     <p class="subtitle" id="chart-subtitle"></p>
 
     <div class="controls">
       <label for="agency-select">Agency:</label>
       <select id="agency-select"></select>
+      <label for="admin-select">Admin:</label>
+      <select id="admin-select"></select>
     </div>
 
     <div class="legend" id="legend"></div>
 
     <div class="chart-wrapper">
       <canvas id="chart" role="img"
-        aria-label="Stacked bar chart of DOI discretionary no-bid contracts by administration">
+        aria-label="Bar chart of DOI urgency no-bid contracts by administration">
       </canvas>
+    </div>
+
+    <p id="table-caption" class="table-caption"></p>
+    <div class="table-section">
+      <table id="contracts-table">
+        <thead id="contracts-thead"></thead>
+        <tbody id="contracts-tbody"></tbody>
+      </table>
     </div>
 
     <p class="source">
       First <span id="window-days"></span> days per administration (Jan. 20 inauguration).
-      Excludes statutory (AbilityOne/8(a)), utilities, sole-source (ONE/UNQ),
-      and competed GSA Schedule orders (FAIR). Includes urgency and follow-on task orders
-      under IDV/GSA Schedule vehicles.
+      Urgency (FAR 6.302-2) contracts only. Excludes statutory (AbilityOne/8(a)), utilities,
+      sole-source (ONE/UNQ), and competed GSA Schedule orders (FAIR). Includes urgency task
+      orders under IDV/GSA Schedule vehicles.
       Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk download.
       Analysis: Center for Western Priorities.
     </p>
@@ -76,28 +102,31 @@
   <script>
   const DOI_DATA = /* __DOI_DATA__ */null/* end */;
 
-  const ALL_DOI = '__all__';
-  const JUST_COLORS = {
-    'Urgency (FAR 6.302-2)': '#E24B4A',
-    'Follow-on contract':    '#EF9F27',
-    'Other':                 '#888780',
-  };
-  const JUST_ORDER = ['Urgency (FAR 6.302-2)', 'Follow-on contract', 'Other'];
+  const ALL_DOI   = '__all__';
+  const ALL_ADMIN = '__all__';
 
-  function buildDatasets(agency) {
+  function buildLabels(admin) {
+    return admin === ALL_ADMIN ? DOI_DATA.administrations.slice() : [admin];
+  }
+
+  function buildDatasets(agency, admin) {
+    const idxs = admin === ALL_ADMIN
+      ? DOI_DATA.administrations.map((_, i) => i)
+      : [DOI_DATA.administrations.indexOf(admin)];
+
     if (agency === ALL_DOI) {
       return Object.entries(DOI_DATA.doi_obligations).map(([name, vals]) => ({
         label: name,
-        data: vals,
+        data: idxs.map(i => vals[i]),
         backgroundColor: DOI_DATA.agency_colors[name] || '#ccc',
       }));
     }
-    const breakdown = DOI_DATA.agency_breakdown[agency];
-    return JUST_ORDER.map(bucket => ({
-      label: bucket,
-      data: (breakdown && breakdown[bucket]) || DOI_DATA.administrations.map(() => 0),
-      backgroundColor: JUST_COLORS[bucket],
-    }));
+    const vals = DOI_DATA.doi_obligations[agency] || DOI_DATA.administrations.map(() => 0);
+    return [{
+      label: agency,
+      data: idxs.map(i => vals[i]),
+      backgroundColor: DOI_DATA.agency_colors[agency] || '#ccc',
+    }];
   }
 
   function renderLegend(agency) {
@@ -108,45 +137,111 @@
         `<span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>${name}</span>`
       );
     } else {
-      items = JUST_ORDER.map(bucket =>
-        `<span class="legend-item"><span class="legend-swatch" style="background:${JUST_COLORS[bucket]}"></span>${bucket}</span>`
-      );
+      const color = DOI_DATA.agency_colors[agency] || '#ccc';
+      items = [`<span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>${agency}</span>`];
     }
     el.innerHTML = items.join('');
   }
 
-  function updateTitle(agency) {
+  function updateTitle(agency, admin) {
     const title = document.getElementById('chart-title');
-    const sub = document.getElementById('chart-subtitle');
-    const wl = DOI_DATA.window_label;
+    const sub   = document.getElementById('chart-subtitle');
+    const wl    = DOI_DATA.window_label;
+    const adminLabel = admin === ALL_ADMIN ? 'all administrations' : admin;
     if (agency === ALL_DOI) {
-      title.textContent = 'DOI discretionary no-bid contracts by administration';
-      sub.textContent = wl + ' · All Department of the Interior bureaus · Urgency, follow-on, and other discretionary no-bid contracts';
+      title.textContent = 'DOI urgency no-bid contracts by administration';
+      sub.textContent   = wl + ' · All Department of the Interior bureaus · ' + adminLabel;
     } else {
-      title.textContent = agency + ' discretionary no-bid contracts by administration';
-      sub.textContent = wl + ' · Urgency, follow-on, and other discretionary no-bid contracts';
+      title.textContent = agency + ' urgency no-bid contracts by administration';
+      sub.textContent   = wl + ' · ' + adminLabel;
     }
   }
 
-  function switchTo(agency) {
-    chart.data.datasets = buildDatasets(agency);
-    // Labels (administrations) are the same for all views; no need to update chart.data.labels.
-    chart.update();
-    renderLegend(agency);
-    updateTitle(agency);
+  function escHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  // Populate dropdown using DOM API to safely handle special chars in agency names
+  function fmtAmount(amt) {
+    return amt >= 1
+      ? '$' + amt.toFixed(1) + 'M'
+      : '$' + Math.round(amt * 1000) + 'K';
+  }
+
+  function renderTable(agency, admin) {
+    const showAgency = agency === ALL_DOI;
+    const showAdmin  = admin  === ALL_ADMIN;
+
+    const filtered = DOI_DATA.contracts.filter(function(c) {
+      return (showAgency || c.agency === agency) && (showAdmin || c.admin === admin);
+    });
+
+    let hdr = '<th class="num">Amount</th><th>Vendor</th><th>Description</th>';
+    if (showAgency) hdr += '<th>Agency</th>';
+    hdr += '<th>State</th><th>Date</th>';
+    if (showAdmin)  hdr += '<th>Admin</th>';
+    hdr += '<th></th>';
+    document.getElementById('contracts-thead').innerHTML = '<tr>' + hdr + '</tr>';
+
+    const rows = filtered.map(function(c) {
+      const amtClass = 'num' + (c.amount >= 1 ? ' large' : '');
+      let cells = `<td class="${amtClass}">${fmtAmount(c.amount)}</td>`
+        + `<td>${escHtml(c.vendor)}</td>`
+        + `<td style="color:#555">${escHtml(c.description)}</td>`;
+      if (showAgency) cells += `<td style="color:#666">${escHtml(c.agency_short)}</td>`;
+      cells += `<td style="color:#666">${escHtml(c.state)}</td>`
+        + `<td style="color:#666;white-space:nowrap">${escHtml(c.date)}</td>`;
+      if (showAdmin) cells += `<td style="color:#666;white-space:nowrap">${escHtml(c.admin)}</td>`;
+      cells += `<td><a href="${escHtml(c.url)}" target="_blank" rel="noopener" title="USASpending">↗</a></td>`;
+      return '<tr>' + cells + '</tr>';
+    });
+    document.getElementById('contracts-tbody').innerHTML = rows.join('');
+
+    const agencyLabel = agency === ALL_DOI ? 'all agencies' : agency;
+    const adminLabel  = admin  === ALL_ADMIN ? 'all administrations' : admin;
+    document.getElementById('table-caption').textContent =
+      filtered.length + ' urgency contracts · ' + agencyLabel + ' · ' + adminLabel;
+  }
+
+  function switchTo(agency, admin) {
+    chart.data.labels   = buildLabels(admin);
+    chart.data.datasets = buildDatasets(agency, admin);
+    chart.update();
+    renderLegend(agency);
+    updateTitle(agency, admin);
+    renderTable(agency, admin);
+  }
+
+  // Populate agency dropdown
   const select = document.getElementById('agency-select');
-  [{ label: 'All DOI', value: ALL_DOI }].concat(
-    Object.keys(DOI_DATA.doi_obligations).map(a => ({ label: a, value: a }))
-  ).forEach(function(item) {
-    const opt = document.createElement('option');
-    opt.value = item.value;
-    opt.textContent = item.label;
-    select.appendChild(opt);
-  });
-  select.addEventListener('change', function() { switchTo(this.value); });
+  [{ label: 'All DOI', value: ALL_DOI }]
+    .concat(
+      Object.keys(DOI_DATA.doi_obligations)
+        .filter(a => a !== 'Other DOI bureaus')
+        .map(a => ({ label: a, value: a }))
+    )
+    .forEach(function(item) {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      select.appendChild(opt);
+    });
+  select.addEventListener('change', function() { switchTo(this.value, adminSelect.value); });
+
+  // Populate admin dropdown
+  const adminSelect = document.getElementById('admin-select');
+  [{ label: 'All administrations', value: ALL_ADMIN }]
+    .concat(DOI_DATA.administrations.map(a => ({ label: a, value: a })))
+    .forEach(function(item) {
+      const opt = document.createElement('option');
+      opt.value = item.value;
+      opt.textContent = item.label;
+      adminSelect.appendChild(opt);
+    });
+  adminSelect.addEventListener('change', function() { switchTo(select.value, this.value); });
 
   // Source note
   document.getElementById('window-days').textContent = DOI_DATA.days_in_window;
@@ -155,8 +250,8 @@
   const chart = new Chart(document.getElementById('chart'), {
     type: 'bar',
     data: {
-      labels: DOI_DATA.administrations,
-      datasets: buildDatasets(ALL_DOI),
+      labels: buildLabels(ALL_ADMIN),
+      datasets: buildDatasets(ALL_DOI, ALL_ADMIN),
     },
     options: {
       responsive: true,
@@ -204,7 +299,8 @@
   });
 
   renderLegend(ALL_DOI);
-  updateTitle(ALL_DOI);
+  updateTitle(ALL_DOI, ALL_ADMIN);
+  renderTable(ALL_DOI, ALL_ADMIN);
   </script>
 </body>
 </html>
