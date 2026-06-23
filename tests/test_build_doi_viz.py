@@ -234,3 +234,37 @@ def test_contracts_table_usaspending_url_contains_award_key():
     result = build_contracts_table(df, ["Trump II"], windows)
     assert "CONT_AWD_140P2026C0028_1443_-NONE-_-NONE-" in result[0]["url"]
     assert result[0]["url"].startswith("https://www.usaspending.gov/award/")
+
+
+def test_contracts_table_description_uses_fallback_when_nan():
+    df = pd.DataFrame([{
+        "action_date": pd.Timestamp("2025-02-01"),
+        "contract_award_unique_key": "AWD-1",
+        "award_id_piid": "P001",
+        "awarding_sub_agency_name": "National Park Service",
+        "federal_action_obligation": float(1_000_000),
+        "primary_place_of_performance_state_code": "DC",
+        "recipient_name": "Vendor",
+        "transaction_description": "nan",
+        "prime_award_base_transaction_description": "Fallback description",
+    }])
+    windows = _windows_for(["Trump II"])
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert result[0]["description"] == "Fallback description"
+
+
+def test_contracts_table_description_empty_when_both_nan():
+    df = pd.DataFrame([{
+        "action_date": pd.Timestamp("2025-02-01"),
+        "contract_award_unique_key": "AWD-1",
+        "award_id_piid": "P001",
+        "awarding_sub_agency_name": "National Park Service",
+        "federal_action_obligation": float(1_000_000),
+        "primary_place_of_performance_state_code": "DC",
+        "recipient_name": "Vendor",
+        "transaction_description": "nan",
+        "prime_award_base_transaction_description": "nan",
+    }])
+    windows = _windows_for(["Trump II"])
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert result[0]["description"] == ""
