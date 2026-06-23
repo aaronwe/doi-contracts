@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOI Discretionary No-Bid Contracts by Administration</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 16px; line-height: 1.6; color: #1a1a1a; background: #fff;
+      padding: 2.5rem 1.5rem;
+    }
+    .container { max-width: 780px; margin: 0 auto; }
+    .eyebrow {
+      font-size: 12px; font-weight: 500; letter-spacing: .08em;
+      text-transform: uppercase; color: #888; margin-bottom: .5rem;
+    }
+    h1 { font-size: 22px; font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
+    .subtitle { font-size: 14px; color: #555; margin-bottom: 1.5rem; }
+    .controls {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;
+    }
+    .controls label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .06em; color: #888;
+    }
+    .controls select {
+      font-size: 13px; padding: 4px 10px; border: 1px solid #ccc;
+      border-radius: 5px; color: #333; background: #fff; cursor: pointer;
+    }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 14px;
+      margin-bottom: 10px; font-size: 12px; color: #555;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .chart-wrapper { position: relative; width: 100%; height: 360px; }
+    .source { font-size: 11px; color: #aaa; margin-top: 1rem; line-height: 1.5; }
+    .source a { color: #aaa; }
+    @media (max-width: 500px) { h1 { font-size: 18px; } }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <p class="eyebrow">Center for Western Priorities · DOI Contracting Analysis</p>
+    <h1 id="chart-title">DOI discretionary no-bid contracts by administration</h1>
+    <p class="subtitle" id="chart-subtitle"></p>
+
+    <div class="controls">
+      <label for="agency-select">Agency:</label>
+      <select id="agency-select"></select>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="chart-wrapper">
+      <canvas id="chart" role="img"
+        aria-label="Stacked bar chart of DOI discretionary no-bid contracts by administration">
+      </canvas>
+    </div>
+
+    <p class="source">
+      First <span id="window-days"></span> days per administration (Jan. 20 inauguration).
+      Excludes statutory (AbilityOne/8(a)), utilities, sole-source (ONE/UNQ),
+      and competed GSA Schedule orders (FAIR). Includes urgency and follow-on task orders
+      under IDV/GSA Schedule vehicles.
+      Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk download.
+      Analysis: Center for Western Priorities.
+    </p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script>
+  const DOI_DATA = {"days_in_window": 520, "window_label": "First 520 days", "administrations": ["Trump I", "Biden", "Trump II"], "agency_colors": {"Departmental Offices": "#C45E00", "National Park Service": "#E24B4A", "Bureau of Land Management": "#EF9F27", "Bureau of Indian Affairs and Bureau of Indian Education": "#4A90D9", "U.S. Fish and Wildlife Service": "#5BAD6F", "Bureau of Reclamation": "#1A7CBF", "U.S. Geological Survey": "#9B59B6", "Office of the Inspector General": "#2E7D32", "Bureau of Safety and Environmental Enforcement": "#6A1B9A", "Other DOI bureaus": "#888780"}, "doi_obligations": {"Departmental Offices": [100.945, 155.825, 69.863], "National Park Service": [5.766, 4.02, 22.467], "Bureau of Land Management": [7.713, 3.742, 5.041], "Bureau of Indian Affairs and Bureau of Indian Education": [1.853, 2.783, 4.247], "U.S. Fish and Wildlife Service": [3.117, 0.649, 3.04], "Bureau of Reclamation": [1.883, 1.19, 1.786], "U.S. Geological Survey": [4.355, 10.98, 0.288], "Office of the Inspector General": [0.012, 0.099, 0.0], "Bureau of Safety and Environmental Enforcement": [0.657, 0.639, -0.039], "Other DOI bureaus": [0.031, 0.001, 0.003]}, "agency_breakdown": {"Bureau of Land Management": {"Urgency (FAR 6.302-2)": [6.823, 0.349, 3.522], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.891, 3.392, 1.519]}, "Bureau of Indian Affairs and Bureau of Indian Education": {"Urgency (FAR 6.302-2)": [1.199, 1.098, 3.146], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.655, 1.685, 1.101]}, "Bureau of Safety and Environmental Enforcement": {"Urgency (FAR 6.302-2)": [0.0, 0.0, 0.0], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.657, 0.639, -0.039]}, "Office of the Inspector General": {"Urgency (FAR 6.302-2)": [0.0, 0.0, 0.0], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.012, 0.099, 0.0]}, "Bureau of Reclamation": {"Urgency (FAR 6.302-2)": [1.539, 0.818, 1.033], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.344, 0.371, 0.753]}, "U.S. Fish and Wildlife Service": {"Urgency (FAR 6.302-2)": [2.34, 0.465, 2.322], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.776, 0.184, 0.719]}, "U.S. Geological Survey": {"Urgency (FAR 6.302-2)": [0.114, 0.013, 0.053], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [4.241, 10.967, 0.235]}, "Departmental Offices": {"Urgency (FAR 6.302-2)": [76.802, 155.753, 39.715], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [24.143, 0.072, 30.148]}, "National Park Service": {"Urgency (FAR 6.302-2)": [1.3, 2.464, 21.686], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [4.466, 1.556, 0.78]}, "Other DOI bureaus": {"Urgency (FAR 6.302-2)": [0.022, 0.001, 0.0], "Follow-on contract": [0.0, 0.0, 0.0], "Other": [0.009, 0.0, 0.003]}}};
+
+  const ALL_DOI = '__all__';
+  const JUST_COLORS = {
+    'Urgency (FAR 6.302-2)': '#E24B4A',
+    'Follow-on contract':    '#EF9F27',
+    'Other':                 '#888780',
+  };
+  const JUST_ORDER = ['Urgency (FAR 6.302-2)', 'Follow-on contract', 'Other'];
+
+  function buildDatasets(agency) {
+    if (agency === ALL_DOI) {
+      return Object.entries(DOI_DATA.doi_obligations).map(([name, vals]) => ({
+        label: name,
+        data: vals,
+        backgroundColor: DOI_DATA.agency_colors[name] || '#ccc',
+      }));
+    }
+    const breakdown = DOI_DATA.agency_breakdown[agency];
+    return JUST_ORDER.map(bucket => ({
+      label: bucket,
+      data: (breakdown && breakdown[bucket]) || DOI_DATA.administrations.map(() => 0),
+      backgroundColor: JUST_COLORS[bucket],
+    }));
+  }
+
+  function renderLegend(agency) {
+    const el = document.getElementById('legend');
+    let items;
+    if (agency === ALL_DOI) {
+      items = Object.entries(DOI_DATA.agency_colors).map(([name, color]) =>
+        `<span class="legend-item"><span class="legend-swatch" style="background:${color}"></span>${name}</span>`
+      );
+    } else {
+      items = JUST_ORDER.map(bucket =>
+        `<span class="legend-item"><span class="legend-swatch" style="background:${JUST_COLORS[bucket]}"></span>${bucket}</span>`
+      );
+    }
+    el.innerHTML = items.join('');
+  }
+
+  function updateTitle(agency) {
+    const title = document.getElementById('chart-title');
+    const sub = document.getElementById('chart-subtitle');
+    const wl = DOI_DATA.window_label;
+    if (agency === ALL_DOI) {
+      title.textContent = 'DOI discretionary no-bid contracts by administration';
+      sub.textContent = wl + ' · All Department of the Interior bureaus · Urgency, follow-on, and other discretionary no-bid contracts';
+    } else {
+      title.textContent = agency + ' discretionary no-bid contracts by administration';
+      sub.textContent = wl + ' · Urgency, follow-on, and other discretionary no-bid contracts';
+    }
+  }
+
+  function switchTo(agency) {
+    chart.data.datasets = buildDatasets(agency);
+    // Labels (administrations) are the same for all views; no need to update chart.data.labels.
+    chart.update();
+    renderLegend(agency);
+    updateTitle(agency);
+  }
+
+  // Populate dropdown using DOM API to safely handle special chars in agency names
+  const select = document.getElementById('agency-select');
+  [{ label: 'All DOI', value: ALL_DOI }].concat(
+    Object.keys(DOI_DATA.doi_obligations).map(a => ({ label: a, value: a }))
+  ).forEach(function(item) {
+    const opt = document.createElement('option');
+    opt.value = item.value;
+    opt.textContent = item.label;
+    select.appendChild(opt);
+  });
+  select.addEventListener('change', function() { switchTo(this.value); });
+
+  // Source note
+  document.getElementById('window-days').textContent = DOI_DATA.days_in_window;
+
+  // Init chart
+  const chart = new Chart(document.getElementById('chart'), {
+    type: 'bar',
+    data: {
+      labels: DOI_DATA.administrations,
+      datasets: buildDatasets(ALL_DOI),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const v = ctx.parsed.y;
+              if (Math.abs(v) < 0.005) return null;
+              return ' ' + ctx.dataset.label + ': $' + v.toFixed(1) + 'M';
+            },
+            footer: function(items) {
+              const total = items.reduce(function(s, i) { return s + i.parsed.y; }, 0);
+              return 'Total: $' + total.toFixed(1) + 'M';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { font: { size: 13 }, color: '#444' }
+        },
+        y: {
+          stacked: true,
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          ticks: {
+            font: { size: 11 },
+            color: '#666',
+            callback: function(v) { return '$' + v + 'M'; }
+          },
+          title: {
+            display: true,
+            text: 'Obligated ($ millions)',
+            color: '#666',
+            font: { size: 11 }
+          }
+        }
+      }
+    }
+  });
+
+  renderLegend(ALL_DOI);
+  updateTitle(ALL_DOI);
+  </script>
+</body>
+</html>

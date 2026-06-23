@@ -28,14 +28,16 @@ EXCLUDE_JUSTIFICATION_CODES = {"OTH", "UT", "ONE", "UNQ"}
 OTHER_THRESHOLD_DOLLARS = 100_000
 
 AGENCY_COLORS = {
-    "National Park Service":          "#E24B4A",
-    "Bureau of Land Management":      "#EF9F27",
-    "Bureau of Indian Affairs":       "#4A90D9",
-    "U.S. Fish and Wildlife Service": "#5BAD6F",
-    "U.S. Geological Survey":         "#9B59B6",
-    "Other DOI bureaus":              "#888780",
+    "National Park Service":                                "#E24B4A",
+    "Bureau of Land Management":                            "#EF9F27",
+    "Bureau of Indian Affairs and Bureau of Indian Education": "#4A90D9",
+    "U.S. Fish and Wildlife Service":                       "#5BAD6F",
+    "U.S. Geological Survey":                               "#9B59B6",
+    "Bureau of Reclamation":                                "#1A7CBF",
+    "Departmental Offices":                                 "#C45E00",
+    "Other DOI bureaus":                                    "#888780",
 }
-FALLBACK_COLORS = ["#1A7CBF", "#C45E00", "#2E7D32", "#6A1B9A", "#00695C"]
+FALLBACK_COLORS = ["#2E7D32", "#6A1B9A", "#00695C", "#4E342E", "#37474F"]
 
 JUST_URGENCY  = "Urgency (FAR 6.302-2)"
 JUST_FOLLOWON = "Follow-on contract"

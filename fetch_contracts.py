@@ -42,7 +42,7 @@ from config import (
 )
 
 POLL_INTERVAL_SECS = 5
-MAX_POLL_ATTEMPTS = 120  # 10-minute ceiling per year
+MAX_POLL_ATTEMPTS = 240  # 20-minute ceiling per year
 
 
 def _post_with_retry(url: str, payload: dict) -> dict:
