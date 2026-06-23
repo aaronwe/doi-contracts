@@ -29,8 +29,9 @@ from config import (
     DOI_TOPTIER_NAME,
     CONTRACT_AWARD_TYPES,
     NO_BID_CODES,
+    IDV_SOLE_SOURCE_FAIR_OPP_CODES,
     DATA_START_DATE,
-    OUTPUT_CSV,
+    NPS_OUTPUT_CSV,
     DOWNLOADS_DIR,
     KEEP_COLUMNS,
 )
@@ -103,7 +104,16 @@ def stream_zip_to_disk(file_url: str, zip_path: str):
 
 
 def read_and_filter_zip(zip_path: str) -> pd.DataFrame:
-    """Extract the CSV from a ZIP, keep only no-bid rows and needed columns."""
+    """Extract the CSV from a ZIP, keep only no-bid rows and needed columns.
+
+    Inclusion logic:
+      (a) extent_competed_code in {B, C} AND fair_opportunity_limited_sources_code != "FAIR"
+          → traditional no-bid contracts; FAIR exclusion removes GSA orders that were
+            actually competed among schedule holders (Finding 2)
+      (b) fair_opportunity_limited_sources_code in IDV_SOLE_SOURCE_FAIR_OPP_CODES
+          → sole-source task orders under competed IDVs/GSA Schedules whose parent
+            contract inherited an A/D extent_competed_code (Finding 1)
+    """
     with zipfile.ZipFile(zip_path) as zf:
         csv_names = [n for n in zf.namelist() if n.endswith(".csv")]
         if not csv_names:
@@ -115,7 +125,15 @@ def read_and_filter_zip(zip_path: str) -> pd.DataFrame:
                 low_memory=False,
             )
 
-    df = df[df["extent_competed_code"].isin(NO_BID_CODES)].copy()
+    bc_mask = df["extent_competed_code"].isin(NO_BID_CODES)
+
+    if "fair_opportunity_limited_sources_code" in df.columns:
+        fair_opp = df["fair_opportunity_limited_sources_code"].fillna("")
+        not_fair_mask = fair_opp != "FAIR"
+        idv_sole_source_mask = fair_opp.isin(IDV_SOLE_SOURCE_FAIR_OPP_CODES)
+        df = df[(bc_mask & not_fair_mask) | idv_sole_source_mask].copy()
+    else:
+        df = df[bc_mask].copy()
 
     available = [c for c in KEEP_COLUMNS if c in df.columns]
     missing = set(KEEP_COLUMNS) - set(available)
@@ -171,9 +189,9 @@ def main():
     combined = combined.sort_values("action_date")
     combined["action_date"] = combined["action_date"].dt.strftime("%Y-%m-%d")
 
-    combined.to_csv(OUTPUT_CSV, index=False)
+    combined.to_csv(NPS_OUTPUT_CSV, index=False)
 
-    print(f"\nWrote {len(combined):,} transactions → {OUTPUT_CSV}")
+    print(f"\nWrote {len(combined):,} transactions → {NPS_OUTPUT_CSV}")
     print(f"Unique awards: {combined['contract_award_unique_key'].nunique():,}")
     print(f"Date range: {combined['action_date'].min()} to {combined['action_date'].max()}")
 
