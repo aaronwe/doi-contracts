@@ -5,48 +5,12 @@ from datetime import date, timedelta
 
 from build_doi_viz import (
     INJECTION_MARKER,
-    JUST_FOLLOWON,
-    JUST_OTHER,
-    JUST_URGENCY,
-    classify_justification,
     inject_and_write,
     aggregate_doi_obligations,
-    aggregate_agency_breakdown,
+    build_contracts_table,
     compute_window,
     VIZ_ADMIN_NAMES,
 )
-
-
-# ── classify_justification ───────────────────────────────────────────────────
-
-def test_classify_urg_via_otf_code():
-    assert classify_justification("URG", "") == JUST_URGENCY
-
-
-def test_classify_urg_via_fair_opp_code():
-    # IDV urgency task order: OTH extent but URG fair_opp
-    assert classify_justification("OTH", "URG") == JUST_URGENCY
-
-
-def test_classify_followon_via_otf_code():
-    assert classify_justification("FOO", "") == JUST_FOLLOWON
-
-
-def test_classify_followon_via_fair_opp_code():
-    assert classify_justification("", "FOO") == JUST_FOLLOWON
-
-
-def test_classify_other_for_unknown_code():
-    assert classify_justification("B", "") == JUST_OTHER
-
-
-def test_classify_other_for_empty_codes():
-    assert classify_justification("", "") == JUST_OTHER
-
-
-def test_classify_urgency_takes_priority_over_followon():
-    # If somehow both URG and FOO appear, URG wins
-    assert classify_justification("URG", "FOO") == JUST_URGENCY
 
 
 # ── inject_and_write ─────────────────────────────────────────────────────────
@@ -115,6 +79,24 @@ def _windows_for(admin_names, days=365):
     }
 
 
+def _make_full_df(rows):
+    """rows: list of (date_str, award_key, piid, agency, obligation, state, vendor, description)"""
+    return pd.DataFrame([
+        {
+            "action_date":                              pd.Timestamp(r[0]),
+            "contract_award_unique_key":                r[1],
+            "award_id_piid":                            r[2],
+            "awarding_sub_agency_name":                 r[3],
+            "federal_action_obligation":                float(r[4]),
+            "primary_place_of_performance_state_code":  r[5],
+            "recipient_name":                           r[6],
+            "transaction_description":                  r[7],
+            "prime_award_base_transaction_description": r[7],
+        }
+        for r in rows
+    ])
+
+
 # ── aggregate_doi_obligations ────────────────────────────────────────────────
 
 def test_aggregate_sums_by_agency_and_admin():
@@ -164,29 +146,86 @@ def test_aggregate_trump_ii_is_first_in_sort():
     assert agencies[0] == "Agency A"  # Agency A has higher Trump II ($30M vs $1M)
 
 
-# ── aggregate_agency_breakdown ───────────────────────────────────────────────
+# ── build_contracts_table ────────────────────────────────────────────────────
 
-def test_breakdown_splits_by_bucket():
-    df = _make_df([
-        ("2025-02-01", "Agency A", 2_000_000, "URG", ""),
-        ("2025-02-01", "Agency A", 1_000_000, "FOO", ""),
-        ("2025-02-01", "Agency A",   500_000, "B",   ""),
+def test_contracts_table_sorted_by_amount_desc():
+    df = _make_full_df([
+        ("2025-02-01", "AWD-1", "P001", "National Park Service", 500_000,   "DC", "Vendor A", "Work A"),
+        ("2025-03-01", "AWD-2", "P002", "National Park Service", 2_000_000, "DC", "Vendor B", "Work B"),
+        ("2025-04-01", "AWD-3", "P003", "National Park Service", 100_000,   "DC", "Vendor C", "Work C"),
     ])
     windows = _windows_for(["Trump II"])
-    result = aggregate_agency_breakdown(df, ["Trump II"], windows)
-    a = result["Agency A"]
-    assert a[JUST_URGENCY]  == [pytest.approx(2.0, abs=0.001)]
-    assert a[JUST_FOLLOWON] == [pytest.approx(1.0, abs=0.001)]
-    assert a[JUST_OTHER]    == [pytest.approx(0.5, abs=0.001)]
+    result = build_contracts_table(df, ["Trump II"], windows)
+    amounts = [r["amount"] for r in result]
+    assert amounts == sorted(amounts, reverse=True)
 
 
-def test_breakdown_produces_all_three_buckets_even_if_zero():
-    df = _make_df([
-        ("2025-02-01", "Agency A", 2_000_000, "URG", ""),
+def test_contracts_table_row_has_required_keys():
+    df = _make_full_df([
+        ("2025-02-01", "AWD-1", "P001", "National Park Service", 1_000_000, "DC", "Vendor A", "Work"),
     ])
     windows = _windows_for(["Trump II"])
-    result = aggregate_agency_breakdown(df, ["Trump II"], windows)
-    a = result["Agency A"]
-    assert JUST_URGENCY  in a
-    assert JUST_FOLLOWON in a
-    assert JUST_OTHER    in a
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert len(result) == 1
+    for key in ("piid", "vendor", "description", "agency", "agency_short", "state",
+                "date", "amount", "url", "admin"):
+        assert key in result[0], f"missing key: {key}"
+
+
+def test_contracts_table_assigns_admin_label():
+    df = _make_full_df([
+        ("2017-02-01", "AWD-1", "P001", "National Park Service", 1_000_000, "DC", "Vendor A", "T1 work"),
+        ("2025-02-01", "AWD-2", "P002", "National Park Service", 2_000_000, "DC", "Vendor B", "T2 work"),
+    ])
+    windows = _windows_for(["Trump I", "Trump II"])
+    result = build_contracts_table(df, ["Trump I", "Trump II"], windows)
+    by_piid = {r["piid"]: r["admin"] for r in result}
+    assert by_piid["P001"] == "Trump I"
+    assert by_piid["P002"] == "Trump II"
+
+
+def test_contracts_table_sums_multi_transaction_award():
+    df = _make_full_df([
+        ("2025-02-01", "AWD-1", "P001", "National Park Service", 1_000_000, "DC", "V", "D"),
+        ("2025-03-01", "AWD-1", "P001", "National Park Service",   500_000, "DC", "V", "D"),
+        ("2025-04-01", "AWD-1", "P001", "National Park Service",  -100_000, "DC", "V", "D"),
+    ])
+    windows = _windows_for(["Trump II"])
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert len(result) == 1
+    assert abs(result[0]["amount"] - 1.4) < 0.001
+
+
+def test_contracts_table_excludes_pre_window_originating_award():
+    df = _make_full_df([
+        # Originated before Trump II, modified during — must be excluded
+        ("2024-12-15", "AWD-OLD", "P001", "National Park Service", 1_000_000, "DC", "V", "D"),
+        ("2025-02-01", "AWD-OLD", "P001", "National Park Service",   500_000, "DC", "V", "D"),
+        # Originated in Trump II — must be included
+        ("2025-02-01", "AWD-NEW", "P002", "National Park Service", 2_000_000, "DC", "V", "D"),
+    ])
+    windows = _windows_for(["Trump II"])
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert len(result) == 1
+    assert result[0]["piid"] == "P002"
+
+
+def test_contracts_table_uses_agency_short_name():
+    df = _make_full_df([
+        ("2025-02-01", "AWD-1", "P001", "National Park Service", 1_000_000, "DC", "V", "D"),
+    ])
+    windows = _windows_for(["Trump II"])
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert result[0]["agency_short"] == "NPS"
+    assert result[0]["agency"] == "National Park Service"
+
+
+def test_contracts_table_usaspending_url_contains_award_key():
+    df = _make_full_df([
+        ("2025-02-01", "CONT_AWD_140P2026C0028_1443_-NONE-_-NONE-", "P001",
+         "National Park Service", 1_000_000, "DC", "V", "D"),
+    ])
+    windows = _windows_for(["Trump II"])
+    result = build_contracts_table(df, ["Trump II"], windows)
+    assert "CONT_AWD_140P2026C0028_1443_-NONE-_-NONE-" in result[0]["url"]
+    assert result[0]["url"].startswith("https://www.usaspending.gov/award/")
