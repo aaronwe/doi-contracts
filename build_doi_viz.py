@@ -128,6 +128,11 @@ def aggregate_doi_obligations(
     return dict(sorted(raw.items(), key=sort_key, reverse=True))
 
 
+def _clean_str(val) -> str:
+    s = str(val or "").strip()
+    return "" if s == "nan" else s
+
+
 def build_contracts_table(
     df: pd.DataFrame, admin_names: list, windows: dict
 ) -> list:
@@ -156,8 +161,8 @@ def build_contracts_table(
         for key, row in first_rows.iterrows():
             full_name = row["awarding_sub_agency_name"]
             desc = (
-                str(row.get("transaction_description") or "")
-                or str(row.get("prime_award_base_transaction_description") or "")
+                _clean_str(row.get("transaction_description"))
+                or _clean_str(row.get("prime_award_base_transaction_description"))
             )
             contracts.append({
                 "piid":         row["award_id_piid"],
