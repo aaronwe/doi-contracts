@@ -213,6 +213,18 @@ def main():
     print(f"Derived NPS subset: {len(nps):,} transactions → {NPS_OUTPUT_CSV}")
     print(f"NPS unique awards: {nps['contract_award_unique_key'].nunique():,}")
 
+    print("\n--- Running compare_admins ---")
+    import compare_admins
+    compare_admins.main()
+
+    print("\n--- Building doi_viz.html ---")
+    import build_doi_viz
+    build_doi_viz.main()
+
+    print("\n--- Building viz.html ---")
+    import build_viz
+    build_viz.main()
+
 
 if __name__ == "__main__":
     main()

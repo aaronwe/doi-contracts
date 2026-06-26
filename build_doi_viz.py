@@ -30,16 +30,16 @@ EXCLUDE_AGENCIES = {"Departmental Offices"}
 OTHER_THRESHOLD_DOLLARS = 100_000
 
 AGENCY_COLORS = {
-    "National Park Service":                                "#E24B4A",
-    "Bureau of Land Management":                            "#EF9F27",
-    "Bureau of Indian Affairs and Bureau of Indian Education": "#4A90D9",
-    "U.S. Fish and Wildlife Service":                       "#5BAD6F",
-    "U.S. Geological Survey":                               "#9B59B6",
-    "Bureau of Reclamation":                                "#1A7CBF",
-    "Departmental Offices":                                 "#C45E00",
-    "Other DOI bureaus":                                    "#888780",
+    "National Park Service":                                "#78b43c",  # CWP green
+    "Bureau of Land Management":                            "#4398b5",  # CWP blue-4
+    "Bureau of Indian Affairs and Bureau of Indian Education": "#d2781e",  # CWP orange
+    "U.S. Fish and Wildlife Service":                       "#96782d",  # CWP gold
+    "U.S. Geological Survey":                               "#63c5d8",  # CWP blue-6
+    "Bureau of Reclamation":                                "#5a87a5",  # CWP blue
+    "Departmental Offices":                                 "#d77a28",  # CWP orange-2
+    "Other DOI bureaus":                                    "#9a9590",  # CWP mid-gray
 }
-FALLBACK_COLORS = ["#2E7D32", "#6A1B9A", "#00695C", "#4E342E", "#37474F"]
+FALLBACK_COLORS = ["#84bb41", "#6789a3", "#d77a28", "#998139", "#a1aa4e"]
 
 AGENCY_SHORT = {
     "National Park Service":                                   "NPS",

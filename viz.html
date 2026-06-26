@@ -28,15 +28,6 @@
       margin: 0 auto;
     }
 
-    .eyebrow {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #888;
-      margin-bottom: 0.5rem;
-    }
-
     h1 {
       font-size: 22px;
       font-weight: 600;
@@ -86,28 +77,6 @@
       color: #888;
     }
 
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-bottom: 10px;
-      font-size: 12px;
-      color: #555;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .legend-swatch {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
     .chart-wrapper {
       position: relative;
       width: 100%;
@@ -150,74 +119,79 @@
 <body>
   <div class="container">
 
-    <p class="eyebrow">Center for Western Priorities · NPS Contracting Analysis</p>
     <h1>NPS discretionary no-bid contracts by administration</h1>
-    <p class="subtitle">
-      Urgency (FAR 6.302-2) no-bid contracts · First 520 days ·
-      Excludes statutory (AbilityOne/8(a)), utilities, and sole-source IDV task orders
-    </p>
+    <p class="subtitle" id="subtitle"></p>
 
-    <div class="cards">
-      <div class="card">
-        <div class="card-label">Trump I</div>
-        <div class="card-value">$1.4M</div>
-        <div class="card-sub">55 new contracts</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Biden</div>
-        <div class="card-value">$2.5M</div>
-        <div class="card-sub">66 new contracts</div>
-      </div>
-      <div class="card highlight">
-        <div class="card-label">Trump II</div>
-        <div class="card-value">$21.2M</div>
-        <div class="card-sub">73 new contracts</div>
-      </div>
-    </div>
-
-    <div class="legend">
-      <span class="legend-item"><span class="legend-swatch" style="background:#E24B4A;"></span>Urgency (FAR 6.302-2)</span>
-    </div>
+    <div class="cards" id="cards"></div>
 
     <div class="chart-wrapper">
-      <canvas id="chart" role="img"
-        aria-label="Bar chart of NPS urgency no-bid contracts, first 520 days. Trump I: $1.4M (55 contracts). Biden: $2.5M (66 contracts). Trump II: $21.2M (73 contracts).">
-        Trump I: $1.4M — 55 urgency contracts.
-        Biden: $2.5M — 66 urgency contracts.
-        Trump II: $21.2M — 73 urgency contracts.
-      </canvas>
+      <canvas id="chart" role="img"></canvas>
     </div>
 
-    <div class="callout">
-      NPS urgency contracts (FAR 6.302-2) total <strong>$21.2M under Trump II</strong> —
-      8× Biden's $2.5M and nearly 16× Trump I's $1.4M, within the same first 520-day window.
-    </div>
+    <div class="callout" id="callout"></div>
 
-    <p class="source">
-      First 520 days per administration (Jan. 20 inauguration through equivalent date).
-      Counts contracts by first award date (excludes modifications from prior administrations).
-      Includes urgency task orders under IDV/GSA Schedule vehicles. Excludes AbilityOne/8(a) (OTH),
-      regulated utilities (UT), only-one-source (ONE), and unique-source (UNQ).
-      Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk download,
-      transaction-level data.
-      Analysis: <a href="https://github.com/aaronwe/doi-contracts">github.com/aaronwe/doi-contracts</a>.
-    </p>
+    <p class="source" id="source"></p>
 
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script>
+    const VIZ_DATA = {"days": 522, "admins": [{"name": "Trump I", "total_m": 1.4453, "count": 57}, {"name": "Biden", "total_m": 2.5183, "count": 66}, {"name": "Trump II", "total_m": 21.1905, "count": 73}]};
+
+    const days = VIZ_DATA.days;
+    const admins = VIZ_DATA.admins; // [{name, total_m, count}, ...]
+    const trump2 = admins.find(a => a.name === 'Trump II');
+    const biden  = admins.find(a => a.name === 'Biden');
+    const trump1 = admins.find(a => a.name === 'Trump I');
+
+    function fmtM(v) {
+      return '$' + (Math.round(v * 10) / 10).toFixed(1) + 'M';
+    }
+
+    // Subtitle
+    document.getElementById('subtitle').textContent =
+      'Urgency (FAR 6.302-2) no-bid contracts · First ' + days + ' days ·' +
+      ' Excludes statutory (AbilityOne/8(a)), utilities, and sole-source IDV task orders';
+
+    // Cards
+    const cardsEl = document.getElementById('cards');
+    admins.forEach(function(a) {
+      const div = document.createElement('div');
+      div.className = 'card' + (a.name === 'Trump II' ? ' highlight' : '');
+      div.innerHTML =
+        '<div class="card-label">' + a.name + '</div>' +
+        '<div class="card-value">' + fmtM(a.total_m) + '</div>' +
+        '<div class="card-sub">' + a.count + ' new contracts</div>';
+      cardsEl.appendChild(div);
+    });
+
+    // Callout
+    const bidenX  = Math.round(trump2.total_m / biden.total_m);
+    const trump1X = Math.round(trump2.total_m / trump1.total_m);
+    const calloutEl = document.getElementById('callout');
+    calloutEl.innerHTML =
+      'NPS urgency contracts (FAR 6.302-2) total <strong>' + fmtM(trump2.total_m) + ' under Trump II</strong> — ' +
+      bidenX + '× Biden’s ' + fmtM(biden.total_m) + ' and nearly ' + trump1X + '× Trump I’s ' +
+      fmtM(trump1.total_m) + ', within the same first ' + days + '-day window.';
+
+    // Source note
+    document.getElementById('source').innerHTML =
+      'First ' + days + ' days per administration (Jan. 20 inauguration through equivalent date). ' +
+      'Counts contracts by first award date (excludes modifications from prior administrations). ' +
+      'Includes urgency task orders under IDV/GSA Schedule vehicles. Excludes AbilityOne/8(a) (OTH), ' +
+      'regulated utilities (UT), only-one-source (ONE), and unique-source (UNQ). ' +
+      'Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk download, transaction-level data.';
+
+    // Chart
     new Chart(document.getElementById('chart'), {
       type: 'bar',
       data: {
-        labels: ['Trump I', 'Biden', 'Trump II'],
-        datasets: [
-          {
-            label: 'Urgency (FAR 6.302-2)',
-            data: [1.353, 2.518, 21.191],
-            backgroundColor: '#E24B4A',
-          },
-        ]
+        labels: admins.map(a => a.name),
+        datasets: [{
+          label: 'Urgency (FAR 6.302-2)',
+          data: admins.map(a => a.total_m),
+          backgroundColor: '#E24B4A',
+        }]
       },
       options: {
         responsive: true,
@@ -227,13 +201,13 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: ctx => {
+              label: function(ctx) {
                 const v = ctx.parsed.y;
                 if (v < 0.005) return null;
                 return ' ' + ctx.dataset.label + ': $' + v.toFixed(1) + 'M';
               },
-              footer: items => {
-                const total = items.reduce((s, i) => s + i.parsed.y, 0);
+              footer: function(items) {
+                const total = items.reduce(function(s, i) { return s + i.parsed.y; }, 0);
                 return 'Total: $' + total.toFixed(1) + 'M';
               }
             }
@@ -251,7 +225,7 @@
             ticks: {
               font: { size: 11 },
               color: '#666',
-              callback: v => '$' + v + 'M'
+              callback: function(v) { return '$' + v + 'M'; }
             },
             title: {
               display: true,
@@ -264,6 +238,7 @@
       }
     });
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.11/iframeResizer.contentWindow.min.js"></script>
 </body>
 
 </html>

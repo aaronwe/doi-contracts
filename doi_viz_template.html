@@ -5,66 +5,108 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOI Urgency No-Bid Contracts by Administration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Open+Sans:wght@400;600&family=Raleway:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cwp-green:    #78b43c;
+      --cwp-orange:   #d2781e;
+      --cwp-blue:     #5a87a5;
+      --cwp-gold:     #96782d;
+      --cwp-wordmark: #465050;
+      --cwp-green-2:  #84bb41;
+      --cwp-green-3:  #a1aa4e;
+      --cwp-green-4:  #92b06a;
+      --cwp-green-5:  #92c43f;
+      --cwp-blue-2:   #6789a3;
+      --cwp-blue-3:   #3d759b;
+      --cwp-blue-4:   #4398b5;
+      --cwp-blue-5:   #2f5b74;
+      --cwp-blue-6:   #63c5d8;
+      --cwp-earth-1:  #998139;
+      --cwp-earth-2:  #9e4b2e;
+      --cwp-earth-3:  #cbbc41;
+      --cwp-earth-4:  #de6630;
+      --cwp-orange-2: #d77a28;
+      --cwp-orange-3: #cc753a;
+      --cwp-orange-4: #e29f27;
+      --cwp-orange-5: #f09930;
+      --cwp-white:      #ffffff;
+      --cwp-off-white:  #f5f5f3;
+      --cwp-rule:       #e0ddd8;
+      --cwp-mid-gray:   #9a9590;
+      --cwp-dark:       #2a2a28;
+      --cwp-dark-bg:    #1e2624;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      font-size: 16px; line-height: 1.6; color: #1a1a1a; background: #fff;
+      font-family: 'Source Sans 3', 'Open Sans', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.65; color: var(--cwp-dark); background: var(--cwp-white);
       padding: 2.5rem 1.5rem;
     }
-    .container { max-width: 780px; margin: 0 auto; }
-    .eyebrow {
-      font-size: 12px; font-weight: 500; letter-spacing: .08em;
-      text-transform: uppercase; color: #888; margin-bottom: .5rem;
-    }
-    h1 { font-size: 22px; font-weight: 600; line-height: 1.3; margin-bottom: .5rem; }
-    .subtitle { font-size: 14px; color: #555; margin-bottom: 1.5rem; }
+    .container { max-width: 960px; margin: 0 auto; }
+
     .controls {
       display: flex; align-items: center; gap: 10px;
       margin-bottom: 1rem; flex-wrap: wrap;
     }
     .controls label {
-      font-size: 12px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .06em; color: #888;
+      font-family: 'Open Sans', system-ui, sans-serif;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--cwp-mid-gray);
     }
     .controls select {
-      font-size: 13px; padding: 4px 10px; border: 1px solid #ccc;
-      border-radius: 5px; color: #333; background: #fff; cursor: pointer;
+      font-family: 'Open Sans', system-ui, sans-serif;
+      font-size: 13px; padding: 4px 10px;
+      border: 1px solid var(--cwp-rule);
+      border-radius: 4px; color: var(--cwp-dark); background: var(--cwp-white); cursor: pointer;
     }
     .legend {
       display: flex; flex-wrap: wrap; gap: 14px;
-      margin-bottom: 10px; font-size: 12px; color: #555;
+      margin-bottom: 10px;
+      font-family: 'Open Sans', system-ui, sans-serif;
+      font-size: 12px; color: var(--cwp-mid-gray);
     }
     .legend-item { display: flex; align-items: center; gap: 5px; }
     .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
     .chart-wrapper { position: relative; width: 100%; height: 360px; }
     .table-caption {
-      font-size: 12px; font-weight: 600; color: #555; margin: 1.5rem 0 0.5rem;
+      font-family: 'Open Sans', system-ui, sans-serif;
+      font-size: 11px; font-weight: 600; color: var(--cwp-mid-gray);
+      margin: 1.5rem 0 0.5rem; text-transform: uppercase; letter-spacing: .04em;
     }
     .table-section { overflow-x: auto; }
     #contracts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     #contracts-table th {
-      text-align: left; padding: 5px 8px; border-bottom: 2px solid #ddd;
-      font-weight: 600; color: #555; font-size: 11px; white-space: nowrap;
+      font-family: 'Open Sans', system-ui, sans-serif;
+      text-align: left; padding: 5px 8px;
+      border-bottom: 2px solid var(--cwp-rule);
+      font-weight: 600; color: var(--cwp-mid-gray); font-size: 11px;
+      white-space: nowrap; text-transform: uppercase; letter-spacing: .04em;
     }
     #contracts-table th.num { text-align: right; }
-    #contracts-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+    #contracts-table td {
+      font-family: 'Source Sans 3', 'Open Sans', system-ui, sans-serif;
+      padding: 5px 8px; border-bottom: 1px solid var(--cwp-rule); vertical-align: top;
+    }
     #contracts-table td.num { text-align: right; white-space: nowrap; font-weight: 600; }
-    #contracts-table td.large { color: #c00; }
-    #contracts-table tr:nth-child(even) { background: #fafafa; }
-    #contracts-table a { color: #2563eb; text-decoration: none; }
-    .source { font-size: 11px; color: #aaa; margin-top: 1.5rem; line-height: 1.5; }
-    .source a { color: #aaa; }
-    @media (max-width: 500px) { h1 { font-size: 18px; } }
+    #contracts-table td.large { color: var(--cwp-orange); }
+    #contracts-table tr:nth-child(even) { background: var(--cwp-off-white); }
+    #contracts-table a { color: var(--cwp-blue-4); text-decoration: none; }
+    #contracts-table a:hover { text-decoration: underline; }
+    .source {
+      font-family: 'Open Sans', system-ui, sans-serif;
+      font-size: 11px; color: var(--cwp-mid-gray); margin-top: 1.5rem; line-height: 1.5;
+    }
+    .source a { color: var(--cwp-mid-gray); }
+    @media (max-width: 500px) { body { padding: 1.5rem 1rem; } }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <p class="eyebrow">Center for Western Priorities · DOI Contracting Analysis</p>
-    <h1 id="chart-title">DOI urgency no-bid contracts by administration</h1>
-    <p class="subtitle" id="chart-subtitle"></p>
-
     <div class="controls">
       <label for="agency-select">Agency:</label>
       <select id="agency-select"></select>
@@ -96,11 +138,16 @@
       Source: <a href="https://api.usaspending.gov">USASpending.gov</a> FPDS bulk download.
       Analysis: Center for Western Priorities.
     </p>
+
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script>
   const DOI_DATA = /* __DOI_DATA__ */null/* end */;
+
+  // Apply CWP fonts globally to Chart.js
+  Chart.defaults.font.family = "'Open Sans', system-ui, sans-serif";
+  Chart.defaults.color = '#9a9590';
 
   const ALL_DOI   = '__all__';
   const ALL_ADMIN = '__all__';
@@ -118,14 +165,14 @@
       return Object.entries(DOI_DATA.doi_obligations).map(([name, vals]) => ({
         label: name,
         data: idxs.map(i => vals[i]),
-        backgroundColor: DOI_DATA.agency_colors[name] || '#ccc',
+        backgroundColor: DOI_DATA.agency_colors[name] || '#9a9590',
       }));
     }
     const vals = DOI_DATA.doi_obligations[agency] || DOI_DATA.administrations.map(() => 0);
     return [{
       label: agency,
       data: idxs.map(i => vals[i]),
-      backgroundColor: DOI_DATA.agency_colors[agency] || '#ccc',
+      backgroundColor: DOI_DATA.agency_colors[agency] || '#9a9590',
     }];
   }
 
@@ -137,24 +184,10 @@
         `<span class="legend-item"><span class="legend-swatch" style="background:${escHtml(color)}"></span>${escHtml(name)}</span>`
       );
     } else {
-      const color = DOI_DATA.agency_colors[agency] || '#ccc';
+      const color = DOI_DATA.agency_colors[agency] || '#9a9590';
       items = [`<span class="legend-item"><span class="legend-swatch" style="background:${escHtml(color)}"></span>${escHtml(agency)}</span>`];
     }
     el.innerHTML = items.join('');
-  }
-
-  function updateTitle(agency, admin) {
-    const title = document.getElementById('chart-title');
-    const sub   = document.getElementById('chart-subtitle');
-    const wl    = DOI_DATA.window_label;
-    const adminLabel = admin === ALL_ADMIN ? 'all administrations' : admin;
-    if (agency === ALL_DOI) {
-      title.textContent = 'DOI urgency no-bid contracts by administration';
-      sub.textContent   = wl + ' · All Department of the Interior bureaus · ' + adminLabel;
-    } else {
-      title.textContent = agency + ' urgency no-bid contracts by administration';
-      sub.textContent   = wl + ' · ' + adminLabel;
-    }
   }
 
   function escHtml(s) {
@@ -190,11 +223,11 @@
       const amtClass = 'num' + (c.amount >= 1 ? ' large' : '');
       let cells = `<td class="${amtClass}">${fmtAmount(c.amount)}</td>`
         + `<td>${escHtml(c.vendor)}</td>`
-        + `<td style="color:#555">${escHtml(c.description)}</td>`;
-      if (showAgency) cells += `<td style="color:#666">${escHtml(c.agency_short)}</td>`;
-      cells += `<td style="color:#666">${escHtml(c.state)}</td>`
-        + `<td style="color:#666;white-space:nowrap">${escHtml(c.date)}</td>`;
-      if (showAdmin) cells += `<td style="color:#666;white-space:nowrap">${escHtml(c.admin)}</td>`;
+        + `<td style="color:var(--cwp-mid-gray)">${escHtml(c.description)}</td>`;
+      if (showAgency) cells += `<td style="color:var(--cwp-mid-gray)">${escHtml(c.agency_short)}</td>`;
+      cells += `<td style="color:var(--cwp-mid-gray)">${escHtml(c.state)}</td>`
+        + `<td style="color:var(--cwp-mid-gray);white-space:nowrap">${escHtml(c.date)}</td>`;
+      if (showAdmin) cells += `<td style="color:var(--cwp-mid-gray);white-space:nowrap">${escHtml(c.admin)}</td>`;
       const safeUrl = String(c.url || '').startsWith('https://') ? c.url : '#';
       cells += `<td><a href="${escHtml(safeUrl)}" target="_blank" rel="noopener" title="USASpending">↗</a></td>`;
       return '<tr>' + cells + '</tr>';
@@ -212,7 +245,6 @@
     chart.data.datasets = buildDatasets(agency, admin);
     chart.update();
     renderLegend(agency);
-    updateTitle(agency, admin);
     renderTable(agency, admin);
   }
 
@@ -261,6 +293,9 @@
       plugins: {
         legend: { display: false },
         tooltip: {
+          titleFont: { family: "'Open Sans', system-ui, sans-serif", size: 12 },
+          bodyFont:  { family: "'Open Sans', system-ui, sans-serif", size: 12 },
+          footerFont: { family: "'Open Sans', system-ui, sans-serif", size: 12, weight: '600' },
           callbacks: {
             label: function(ctx) {
               const v = ctx.parsed.y;
@@ -278,21 +313,24 @@
         x: {
           stacked: true,
           grid: { display: false },
-          ticks: { font: { size: 13 }, color: '#444' }
+          ticks: {
+            font: { family: "'Open Sans', system-ui, sans-serif", size: 13 },
+            color: '#465050'
+          }
         },
         y: {
           stacked: true,
           grid: { color: 'rgba(0,0,0,0.06)' },
           ticks: {
-            font: { size: 11 },
-            color: '#666',
+            font: { family: "'Open Sans', system-ui, sans-serif", size: 11 },
+            color: '#9a9590',
             callback: function(v) { return '$' + v + 'M'; }
           },
           title: {
             display: true,
             text: 'Obligated ($ millions)',
-            color: '#666',
-            font: { size: 11 }
+            color: '#9a9590',
+            font: { family: "'Open Sans', system-ui, sans-serif", size: 11 }
           }
         }
       }
@@ -300,8 +338,8 @@
   });
 
   renderLegend(ALL_DOI);
-  updateTitle(ALL_DOI, ALL_ADMIN);
   renderTable(ALL_DOI, ALL_ADMIN);
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.11/iframeResizer.contentWindow.min.js"></script>
 </body>
 </html>
